@@ -123,7 +123,7 @@ export const userService = ({ dbUser }) => {
 
         getUsers: async () => {
             try {
-                const users = await dbUser.find({});
+                const users = await dbUser.find({}).select('+temporaryPassword');
                 const userMap = {
                     owners: [],
                     editors: [],

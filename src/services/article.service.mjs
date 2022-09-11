@@ -34,6 +34,7 @@ export const articleService = ({ dbArticle }) => {
         updateArticle: async (body) => {
             const { articleId, articleChanges } = body
             try {
+                console.log("articleChanges: ", articleChanges)
                 let updatedArticle;
                 updatedArticle = await dbArticle.findByIdAndUpdate(
                     { _id: articleId },

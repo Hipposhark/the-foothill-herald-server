@@ -12,7 +12,10 @@ import mongoose from "mongoose"
 // status: "published",
 // wordcount: 0,
 
+
 export const Article = () => {
+    const ImageSchema = new mongoose.Schema({ imgId: String, name: String, url: String });
+
     const articleSchema = new mongoose.Schema({
         category: {
             type: String,
@@ -48,7 +51,7 @@ export const Article = () => {
             default: 'none',
         },
         imgs: {
-            type: Array,
+            type: [ImageSchema],
             required: [false],
             default: [],
         },
@@ -71,6 +74,6 @@ export const Article = () => {
             type: Number,
             required: [true, 'Please Provide an Article Wordcount'],
         },
-      });
+    });
     return mongoose.model('Article', articleSchema); // name of the collection plus 's'
 }
