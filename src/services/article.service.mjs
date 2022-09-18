@@ -34,7 +34,6 @@ export const articleService = ({ dbArticle }) => {
         updateArticle: async (body) => {
             const { articleId, articleChanges } = body
             try {
-                console.log("articleChanges: ", articleChanges)
                 let updatedArticle;
                 updatedArticle = await dbArticle.findByIdAndUpdate(
                     { _id: articleId },
@@ -74,7 +73,6 @@ export const articleService = ({ dbArticle }) => {
             const { articleId } = body
             try {
                 const article = await dbArticle.findById({ _id: articleId }).select('+content')
-                console.log("getting article: ", article)//
                 return article
             } catch (e) {
                 throw e

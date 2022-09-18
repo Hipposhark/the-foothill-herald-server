@@ -5,6 +5,16 @@ export const articleController = ({ articleService }) => {
         return `${l[1]}. ${parseInt(l[2])}, ${l[3]}`
     }
 
+    const capitalize = (phrase) => {
+        const exceptions = ['and', 'to', 'for', 'in', 'the', 'at', 'on', 'of', 'from']
+        return phrase.split(" ").map((word, i) => {
+            console.log(word)
+            return i == 0 ? word.slice(0, 1).toUpperCase() + word.slice(1) :
+            exceptions.includes(word.toLowerCase()) ? word.toLowerCase() :
+                    word.slice(0, 1).toUpperCase() + word.slice(1)
+        }).join(" ")
+    }
+
     const cleanHtmlString = (str) => { // removes all tags from string
         let i = 0
         let inTag = false
@@ -29,7 +39,7 @@ export const articleController = ({ articleService }) => {
         while (i < str.length) {
             if (str.slice(i, i + 3) === "<p>") {
                 i += 3
-                let s = "<p style='word-wrap: break-word;'>"
+                let s = "<p style='word-wrap: break-word; line-height:2;'>"
                 while (str.slice(i, i + 4) !== "</p>") {
                     s += str[i]
                     i++
@@ -41,21 +51,35 @@ export const articleController = ({ articleService }) => {
         return arr
     }
 
-    const htmlWithImage = (str, template, imgs) => { // none, top, bottom, left, right
+    const htmlWithImage = (str, template, imgs) => { // formats content with imgs based on template
         if (template === "none") {
-            return str
+            return `<div>${str}</div>`
         }
 
         const splittedHtml = splitHtmlString(str)
         switch (template) {
             case "top":
-                return `<img src=${imgs[1].url} style = 'width:500px; display: flex; justify-content: center;'/>${splittedHtml.join("")}`
+                return `<img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>
+                        <div>${splittedHtml.join("")}</div>`
             case "bottom":
-                return `${splittedHtml.join("")}<img src=${imgs[1].url} style = 'width:500px; display: flex; justify-content: center;'/>`
+                return `<div>${splittedHtml.join("")}</div>
+                        <img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>`
             case "left":
-                return `<img src=${imgs[1].url} style = 'float:left; width:500px; padding-right: 20px;'/>${splittedHtml.join("")}`
+                return `<div><img src=${imgs[1].url} style = 'float:left; width:400px; padding-right: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
             case "right":
-                return `<img src=${imgs[1].url} style = 'float:right; width:500px; padding-left: 20px;'/>${splittedHtml.join("")}`
+                return `<div><img src=${imgs[1].url} style = 'float:right; width:400px; padding-left: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
+            case "middle":
+                return `<div>
+                            ${splittedHtml.slice(0, Math.floor(splittedHtml.length / 2)).join("")} 
+                        </div>
+                        <img src=${imgs[1].url} style = 'width:500px; display: flex; align-items: center; padding: 20px;'/>
+                        <div>
+                            ${splittedHtml.slice(Math.floor(splittedHtml.length / 2), splittedHtml.length).join("")} 
+                        </div>`
+            case "top-bottom":
+                return `<img src=${imgs[1].url} style = 'width:500px; display: flex;'/>
+                        <div>${splittedHtml.join("")}</div>
+                        <img src=${imgs[2].url} style = 'width:500px; display: flex;'/>`
             default:
                 return str
         }
@@ -87,31 +111,16 @@ export const articleController = ({ articleService }) => {
             const articleId = req.body.currEditingArticleId
             const article = req.body.currEditingArticle
             const cleanedContent = cleanHtmlString(article.content)
-            let articleChanges
-            if (cleanedContent.length < 5) {
-                articleChanges = {
-                    category: article.category,
-                    title: article.title,
-                    dateSaved: article.date,
-                    template: article.template,
-                    content: article.content,
-                    status: article.status,
-                    imgs: article.imgs,
-                    wordcount: article.wordcount,
-                    preview: "no preview",
-                }
-            } else {
-                articleChanges = {
-                    category: article.category,
-                    title: article.title,
-                    dateSaved: article.date,
-                    template: article.template,
-                    content: article.content,
-                    status: article.status,
-                    imgs: article.imgs,
-                    wordcount: article.wordcount,
-                    preview: cleanedContent.slice(0, 40),
-                }
+            const articleChanges = {
+                category: article.category,
+                title: article.title,
+                dateSaved: article.date,
+                template: article.template,
+                content: article.content,
+                status: article.status,
+                imgs: article.imgs,
+                wordcount: article.wordcount,
+                preview: cleanedContent.slice(0, 110) + "...",
             }
 
             const updatedArticle = await articleService.updateArticle({ articleId, articleChanges })
@@ -214,7 +223,7 @@ export const articleController = ({ articleService }) => {
 
         getHomepageArticlePreviews: async (req, res) => {
             const { previewArticlesPerPage, currentHomePage, filter } = req.body
-            const {previewArticles : requestedHomepageArticleData,  totalPreviewArticles}= await articleService.getPublishedArticles({ previewArticlesPerPage, currentHomePage, filter })
+            const { previewArticles: requestedHomepageArticleData, totalPreviewArticles } = await articleService.getPublishedArticles({ previewArticlesPerPage, currentHomePage, filter })
             const requestedHomepageArticlePreviewsData = requestedHomepageArticleData.map((article) => ({
                 id: article.id,
                 img: article.imgs[0],
@@ -224,12 +233,14 @@ export const articleController = ({ articleService }) => {
                 date: article.date,
                 preview: article.preview,
             }))
-            res.status(201).json({previewArticles: requestedHomepageArticlePreviewsData, totalPreviewArticles})
+            res.status(201).json({ previewArticles: requestedHomepageArticlePreviewsData, totalPreviewArticles })
         },
 
         loadArticleToView: async (req, res) => {
             const articleId = req.body.currViewingArticleId
+            console.log(articleId)
             const currViewingArticle = await articleService.getArticle({ articleId })
+            console.log(currViewingArticle)
             res.status(201).json({
                 id: currViewingArticle._id,
                 title: currViewingArticle.title,
@@ -238,6 +249,7 @@ export const articleController = ({ articleService }) => {
                 content: htmlWithImage(currViewingArticle.content, currViewingArticle.template, currViewingArticle.imgs),
                 category: currViewingArticle.category,
                 wordcount: currViewingArticle.wordcount,
+                status: currViewingArticle.status,
             })
         },
     }
