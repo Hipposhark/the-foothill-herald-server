@@ -1,14 +1,11 @@
-import { diContainer } from "./src/di.mjs";
+import { diContainer } from "./src/di.mjs"
 
 import mongoose from "mongoose"
 
-const PASSWORD = "F00tH1llHer%40ld"
-
-const DB = `mongodb+srv://TheFoothillHerald:${PASSWORD}@thefoothillherald.9q1lruf.mongodb.net/?retryWrites=true&w=majority`;
-// const DB = "mongodb+srv://Hipposhark:Hipposhark@foothillherald.nil8mdx.mongodb.net/?retryWrites=true&w=majority"; 
+const DATABASE_URL = process.env.DATABASE_URL
 
 mongoose
-  .connect(DB, {
+  .connect(DATABASE_URL, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
