@@ -73,7 +73,6 @@ export const articleService = ({ dbArticle }) => {
             const { articleId } = body
             try {
                 const article = await dbArticle.findById({ _id: articleId }).select('+content')
-                console.log("getting article: ", article)//
                 return article
             } catch (e) {
                 throw e
