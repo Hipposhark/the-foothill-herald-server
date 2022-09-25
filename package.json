@@ -6,6 +6,10 @@
   "main": "index.mjs",
   "type": "module",
   "license": "MIT",
+  "engines": {
+    "node": "14.17.5",
+    "npm": "6.14.14"
+  },
   "scripts": {
     "start": "dotenv -e .env.local -e .env nodemon index.mjs | pino-pretty",
     "test": "dotenv -e test/.env.test mocha test/**/** --exit",
