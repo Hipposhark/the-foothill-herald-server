@@ -1,11 +1,7 @@
-import awilix, {AwilixResolutionError, Lifetime} from "awilix";
-import {exampleService} from "./services/example.service.mjs";
-import {exampleRoutes} from "./routes/example.routes.mjs";
-import {exampleController} from "./controllers/example.controller.mjs";
+import awilix, {Lifetime} from "awilix";
 import {app} from "./app.mjs";
 import {makeErrorMiddleware} from "./middlewares/error.middleware.mjs";
 import {server} from "./server.mjs";
-import { Order } from "./models/orders.model.mjs";
 import { makeAuthMiddleWare } from "./middlewares/auth.middleware.mjs";
 import { User } from "./models/user.model.mjs";
 import { userRoutes } from "./routes/user.routes.mjs";
@@ -28,17 +24,14 @@ diContainer.register({
     port: awilix.asValue(process.env.PORT),
 
     //Services
-    exampleService: awilix.asFunction(exampleService),
     userService: awilix.asFunction(userService),
     articleService: awilix.asFunction(articleService),
 
     //Routes
-    exampleRoutes: awilix.asFunction(exampleRoutes),
     userRoutes: awilix.asFunction(userRoutes),
     articleRoutes: awilix.asFunction(articleRoutes),
 
     //Controllers
-    exampleController: awilix.asFunction(exampleController),
     userController: awilix.asFunction(userController),
     articleController: awilix.asFunction(articleController),
 

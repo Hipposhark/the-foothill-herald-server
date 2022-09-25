@@ -1,7 +1,7 @@
 import express from "express";
 import cors from "cors";
 
-export const app = ({exampleRoutes, userRoutes, articleRoutes, errorMiddleware}) => {
+export const app = ({userRoutes, articleRoutes, servingMiddleware, errorMiddleware}) => {
     const app = express()
     app.use(cors({
         credentials: true,
@@ -13,7 +13,6 @@ export const app = ({exampleRoutes, userRoutes, articleRoutes, errorMiddleware})
     }))
     app.use(express.json())
 
-    app.use("/example", exampleRoutes)
     app.use("/user", userRoutes)
     app.use("/article", articleRoutes)
 

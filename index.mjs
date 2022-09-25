@@ -2,8 +2,8 @@ import { diContainer } from "./src/di.mjs"
 
 import mongoose from "mongoose"
 
-require('dotenv').config();
-const DATABASE_URL = process.env.MONGODB_URI
+import('dotenv')
+const DATABASE_URL = process.env.DATABASE_URL
 
 mongoose
   .connect(DATABASE_URL, {
