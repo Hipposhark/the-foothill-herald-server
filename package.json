@@ -7,7 +7,7 @@
   "type": "module",
   "license": "MIT",
   "scripts": {
-    "start": "dotenv -e .env.local -e .env nodemon index.mjs | pino-pretty",
+    "start": "dotenv -e .env.local -e .env nodemon index.mjs",
     "test": "dotenv -e test/.env.test mocha test/**/** --exit",
     "test:ci": "c8 --all --src=./src --reporter=html --reporter=cobertura --reporter=text-summary npm run test",
     "start:cluster": "npm run migrate:apply && node index.mjs",
