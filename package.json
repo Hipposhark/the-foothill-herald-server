@@ -1,7 +1,8 @@
 {
-  "name": "base-express-project",
+  "name": "server",
   "version": "1.0.0",
-  "description": "",
+  "description": "the foothill herald server",
+  "privet": true,
   "main": "index.mjs",
   "type": "module",
   "scripts": {
@@ -12,9 +13,6 @@
     "migrate": "prisma migrate dev --name $npm_config_name",
     "migrate:apply": "prisma db push"
   },
-  "keywords": [],
-  "author": "Luca Cardelli",
-  "license": "ISC",
   "dependencies": {
     "awilix": "^5.0.1",
     "axios": "^0.26.0",
