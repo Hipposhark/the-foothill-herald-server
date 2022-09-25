@@ -2,7 +2,7 @@
   "name": "server",
   "version": "1.0.0",
   "description": "the foothill herald server",
-  "privet": true,
+  "private": true,
   "main": "index.mjs",
   "type": "module",
   "license": "MIT",
