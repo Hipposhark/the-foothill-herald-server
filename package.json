@@ -5,6 +5,7 @@
   "privet": true,
   "main": "index.mjs",
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "start": "dotenv -e .env.local -e .env nodemon index.mjs | pino-pretty",
     "test": "dotenv -e test/.env.test mocha test/**/** --exit",
@@ -19,6 +20,7 @@
     "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
     "dotenv": "^16.0.2",
+    "dotenv-cli": "^4.0.0",
     "express": "^4.17.1",
     "express-pino-logger": "^7.0.0",
     "express-session": "^1.17.2",
@@ -33,7 +35,6 @@
     "c8": "^7.11.0",
     "chai": "^4.3.4",
     "child-process-promise": "^2.2.1",
-    "dotenv-cli": "^4.0.0",
     "mocha": "^9.1.3",
     "nodemon": "^2.0.13",
     "sinon": "^11.1.2",
