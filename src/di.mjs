@@ -1,7 +1,7 @@
-import awilix, {Lifetime} from "awilix";
-import {app} from "./app.mjs";
-import {makeErrorMiddleware} from "./middlewares/error.middleware.mjs";
-import {server} from "./server.mjs";
+import awilix, { Lifetime } from "awilix";
+import { app } from "./app.mjs";
+import { makeErrorMiddleware } from "./middlewares/error.middleware.mjs";
+import { server } from "./server.mjs";
 import { makeAuthMiddleWare } from "./middlewares/auth.middleware.mjs";
 import { User } from "./models/user.model.mjs";
 import { userRoutes } from "./routes/user.routes.mjs";

@@ -1,18 +1,5 @@
 import mongoose from "mongoose"
 
-// id: i,
-// title: "Article Title " + i,
-// author: "Edwin Li",
-// date: (new Date()).toString(), 
-// template: "top", // none, top, bottom, left, right,
-// imgs: ["https://3.files.edl.io/2c1f/19/10/27/170652-584e6d14-c77c-4f51-81fd-805f22340a52.jpg"], // file when implemented by database
-// content: "",
-// category: ["news", "opinion", "sports", "entertainment", "clubs", "advertising"][i%6],
-// preview: "Article Preview", // first # characters of article
-// status: "published",
-// wordcount: 0,
-
-
 export const Article = () => {
     const ImageSchema = new mongoose.Schema({ imgId: String, name: String, url: String });
 
@@ -43,6 +30,12 @@ export const Article = () => {
         dateSaved: {
             type: String,
             required: [true, 'Please Provide a Saved Date'],
+            select: false, 
+        },
+        datePublished: {
+            type: String,
+            required: [false],
+            select: false,
         },
         template: {
             type: String,
@@ -64,10 +57,14 @@ export const Article = () => {
             type: String,
             required: [true, 'Please Provide an Article Preview'],
         },
+        editorComment: {
+            type: String,
+            required: [false],
+        },
         status: {
             type: String,
             required: [true, 'Please Provide an Article Status'],
-            enum: ['editing', 'pending', 'rejected', 'published'],
+            enum: ['editing', 'pending', 'rejected', 'published', 'archived'],
             default: 'editing',
         },
         wordcount: {
@@ -75,5 +72,6 @@ export const Article = () => {
             required: [true, 'Please Provide an Article Wordcount'],
         },
     });
-    return mongoose.model('Article', articleSchema); // name of the collection plus 's'
+    
+    return mongoose.model('Article', articleSchema); 
 }

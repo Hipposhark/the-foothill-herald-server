@@ -19,10 +19,12 @@ export const articleService = ({ dbArticle }) => {
                     authorName: name,
                     dateCreated: (new Date()).toString(),
                     dateSaved: (new Date()).toString(),
+                    datePublished: "",
                     template: "none",
                     imgs: [],
                     content: "<p></p>",
                     preview: "no preview",
+                    editorComment: "",
                     status: "editing",
                     wordcount: 0,
                 });
@@ -72,34 +74,61 @@ export const articleService = ({ dbArticle }) => {
         getArticle: async (body) => {
             const { articleId } = body
             try {
-                const article = await dbArticle.findById({ _id: articleId }).select('+content')
+                const article = await dbArticle.findById({ _id: articleId }).select('+content +dateSaved +datePublished')
                 return article
             } catch (e) {
                 throw e
             }
         },
-        getUserArticles: async (body) => {
-            const { userId, filters, articlesPerPage, currentArticlesPage } = body
-            const { status: statusFilters, category: categoryFilters, date: dateFilters } = filters
+        getGeneralArticles: async (body) => {
+            const { userId, isUserOwner, filters, articlesPerPage, currentArticlesPage } = body
+            const { ownership: ownershipFilters, status: statusFilters, category: categoryFilters, date: dateFilters } = filters
+
+            const updatedStatusFilters = isUserOwner ? statusFilters : statusFilters.filter((status) => status !== "archived")
+            const updatedOwnershipFilters = isUserOwner ? ownershipFilters : ownershipFilters.filter((ownership) => ownership !== "all-articles")
+
             try {
-                const allUserArticles = await dbArticle.find({
-                    'authorId': {
-                        $in: [userId],
+                let allUserArticles
+
+                if (isUserOwner) {
+                    if (updatedOwnershipFilters.includes("all-articles") && updatedOwnershipFilters.includes("my-articles")) {
+                        allUserArticles = await dbArticle.find().select("+dateSaved")
+                    } else if (updatedOwnershipFilters.includes("my-articles")) {
+                        allUserArticles = await dbArticle.find({
+                            'authorId': {
+                                $eq: userId,
+                            }
+                        }).select("+dateSaved").sort('-dateCreated')
+                    } else if (updatedOwnershipFilters.includes("all-articles")) {
+                        allUserArticles = await dbArticle.find({
+                            'authorId': {
+                                $ne: userId,
+                            }
+                        }).select("+dateSaved").sort('-date')
+                        console.log("all")
+                    } else{
+                        allUserArticles = []
                     }
-                })
+                } else {
+                    allUserArticles = await dbArticle.find({
+                        'authorId': {
+                            $eq: userId,
+                        }
+                    }).select("+dateSaved").sort('-date')
+                }
 
                 const filteredUserArticles = allUserArticles.filter((article) => {
                     if (dateFilters.start === "" && dateFilters.end !== "") {
                         const validDate = Date.parse(dateFilters.end) - Date.parse(article.date) > 0
-                        return statusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
+                        return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
                     } else if (dateFilters.start !== "" && dateFilters.end === "") {
                         const validDate = Date.parse(dateFilters.start) - Date.parse(article.date) < 0
-                        return statusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
+                        return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
                     } else if (dateFilters.start !== "" && dateFilters.end !== "") {
                         const validDate = Date.parse(dateFilters.end) - Date.parse(article.date) > 0 && Date.parse(dateFilters.start) - Date.parse(article.date) < 0
-                        return statusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
+                        return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
                     } else {
-                        return statusFilters.includes(article.status) && categoryFilters.includes(article.category)
+                        return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category)
                     }
                 })
 
@@ -113,7 +142,7 @@ export const articleService = ({ dbArticle }) => {
                     authorId: article.authorId,
                     authorName: article.authorName,
                     date: convertDate(article.dateSaved),
-                    img: article.imgs[0],
+                    imgs: article.imgs,
                     category: article.category,
                     wordcount: article.wordcount,
                     status: article.status,
@@ -132,9 +161,9 @@ export const articleService = ({ dbArticle }) => {
             try {
                 const allPendingArticles = await dbArticle.find({
                     'status': {
-                        $in: ["pending"],
+                        $eq: "pending",
                     }
-                })
+                }).select("+dateSaved")
 
                 const requestedPendingArticles = allPendingArticles.filter((article, index) => {
                     return (index >= (currentArticlesPage - 1) * articlesPerPage && (index < (currentArticlesPage - 1) * articlesPerPage + articlesPerPage)) && !(userRole === "editor" && userId === article.authorId)
@@ -166,9 +195,9 @@ export const articleService = ({ dbArticle }) => {
             try {
                 const allPublishedArticles = await dbArticle.find({
                     'status': {
-                        $in: ["published"],
+                        $eq: "published",
                     }
-                })
+                }).select('+datePublished')
 
                 const categoryFilteredPreviewArticles = allPublishedArticles.filter((article) => {
                     return filter === "" ? true : filter === article.category
@@ -185,11 +214,10 @@ export const articleService = ({ dbArticle }) => {
                         category: article.category,
                         title: article.title,
                         author: article.authorName,
-                        date: convertDate(article.dateSaved),
+                        date: convertDate(article.datePublished),
                         preview: article.preview,
                     }
                 })
-
                 return {
                     previewArticles: requestedPreviewArticles,
                     totalPreviewArticles: categoryFilteredPreviewArticles.length,
@@ -199,10 +227,5 @@ export const articleService = ({ dbArticle }) => {
                 throw e
             }
         },
-        getAllArticles: async (body) => {
-
-        },
-
-
     }
 }

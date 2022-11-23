@@ -8,9 +8,8 @@ export const articleController = ({ articleService }) => {
     const capitalize = (phrase) => {
         const exceptions = ['and', 'to', 'for', 'in', 'the', 'at', 'on', 'of', 'from']
         return phrase.split(" ").map((word, i) => {
-            console.log(word)
             return i == 0 ? word.slice(0, 1).toUpperCase() + word.slice(1) :
-            exceptions.includes(word.toLowerCase()) ? word.toLowerCase() :
+                exceptions.includes(word.toLowerCase()) ? word.toLowerCase() :
                     word.slice(0, 1).toUpperCase() + word.slice(1)
         }).join(" ")
     }
@@ -97,11 +96,12 @@ export const articleController = ({ articleService }) => {
             const articleToEdit = await articleService.getArticle({ articleId })
 
             if (userId === articleToEdit.authorId || userRole === "editor" || userRole === "owner") {
+                console.log(articleToEdit)
                 console.log("loaded article")
                 res.status(201).json(articleToEdit)
             } else {
                 res.status(401).json({
-                    error: "Invalid User Id"
+                    error: "Invalid User Id or Role"
                 })
             }
         },
@@ -117,12 +117,12 @@ export const articleController = ({ articleService }) => {
                 dateSaved: article.date,
                 template: article.template,
                 content: article.content,
+                editorComment: article.editorComment,
                 status: article.status,
                 imgs: article.imgs,
                 wordcount: article.wordcount,
                 preview: cleanedContent.slice(0, 110) + "...",
             }
-
             const updatedArticle = await articleService.updateArticle({ articleId, articleChanges })
 
             if (userId === updatedArticle.authorId) {
@@ -139,9 +139,10 @@ export const articleController = ({ articleService }) => {
             const userId = req.body.userId
             const articleId = req.body.currEditingArticleId
             const deletedArticle = await articleService.deleteArticle({ articleId })
+
             if (userId === deletedArticle.authorId) {
                 console.log("deleted article")
-                res.status(201).json({})
+                res.status(201).json(deletedArticle)
             } else {
                 res.status(401).json({
                     error: "Invalid User Id"
@@ -152,28 +153,25 @@ export const articleController = ({ articleService }) => {
         approveArticle: async (req, res) => {
             const userId = req.body.userId
             const articleId = req.body.currEditingArticleId
-            const newStatus = "pending"
-            const updatedArticle = await articleService.updateArticleStatus({ articleId, newStatus })
-
-            if (userId === updatedArticle.authorId) {
-                console.log("waiting article approval")
-                res.status(201).json(updatedArticle)
-            } else {
-                res.status(401).json({
-                    error: "Invalid User Id"
-                })
+            const article = req.body.pendingArticle
+            const cleanedContent = cleanHtmlString(article.content)
+            const articleChanges = {
+                category: article.category,
+                title: article.title,
+                dateSaved: article.date,
+                template: article.template,
+                content: article.content,
+                editorComment: article.editorComment,
+                status: article.status,
+                imgs: article.imgs,
+                wordcount: article.wordcount,
+                preview: cleanedContent.slice(0, 110) + "...",
             }
-        },
+            const pendingArticle = await articleService.updateArticle({ articleId, articleChanges })
 
-        publishArticle: async (req, res) => {
-            const userRole = req.body.userRole
-            const articleId = req.body.currEditingArticleId
-            const newStatus = "published"
-
-            if (userRole === "editor" || userRole === "owner") {
-                const updatedArticle = await articleService.updateArticleStatus({ articleId, newStatus })
-                console.log("published article")
-                res.status(201).json(updatedArticle)
+            if (userId === pendingArticle.authorId) {
+                console.log("waiting article approval")
+                res.status(201).json(pendingArticle)
             } else {
                 res.status(401).json({
                     error: "Invalid User Id"
@@ -184,25 +182,102 @@ export const articleController = ({ articleService }) => {
         rejectArticle: async (req, res) => {
             const userRole = req.body.userRole
             const articleId = req.body.currEditingArticleId
-            const newStatus = "rejected"
+            const article = req.body.rejectedArticle
+            const cleanedContent = cleanHtmlString(article.content)
+            const articleChanges = {
+                category: article.category,
+                title: article.title,
+                dateSaved: article.date,
+                template: article.template,
+                content: article.content,
+                editorComment: article.editorComment,
+                status: article.status,
+                imgs: article.imgs,
+                wordcount: article.wordcount,
+                preview: cleanedContent.slice(0, 110) + "...",
+            }
 
             if (userRole === "editor" || userRole === "owner") {
-                const updatedArticle = await articleService.updateArticleStatus({ articleId, newStatus })
+                const updatedArticle = await articleService.updateArticle({ articleId, articleChanges })
                 console.log("rejected article")
                 res.status(201).json(updatedArticle)
             } else {
                 res.status(401).json({
-                    error: "Invalid User Id"
+                    error: "Invalid User Role"
                 })
             }
         },
 
+        publishArticle: async (req, res) => {
+            const userRole = req.body.userRole
+            const articleId = req.body.currEditingArticleId
+
+            if (userRole === "editor" || userRole === "owner") {
+                await articleService.updateArticle({articleId, articleChanges : {datePublished: (new Date()).toString()}})
+                const publishedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "published" })
+                console.log("published article")
+                res.status(201).json(publishedArticle)
+            } else {
+                res.status(401).json({
+                    error: "Invalid User Role"
+                })
+            }
+        },
+
+        archiveArticle: async (req, res) => {
+            const userRole = req.body.userRole
+            const articleId = req.body.currArticleId
+
+            if (userRole === "owner") {
+                const archivedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "archived" })
+                // console.log("archived article", archivedArticle)
+                res.status(201).json(archivedArticle)
+            } else {
+                res.status(401).json({
+                    error: "Invalid User Role"
+                })
+            }
+        },
+
+        unarchiveArticle: async (req, res) => {
+            const userRole = req.body.userRole
+            const articleId = req.body.currArticleId
+
+            if (userRole === "owner") {
+                const unarchivedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "published" })
+                console.log("unarchived article")
+                res.status(201).json(unarchivedArticle)
+            } else {
+                res.status(401).json({
+                    error: "Invalid User Role"
+                })
+            }
+        },
+
+        deleteArchivedArticle: async (req, res) => {
+            const userRole = req.body.userRole
+            const articleId = req.body.currArticleId
+
+            if (userRole === "owner") {
+                const deletedArticle = await articleService.deleteArticle({ articleId })
+                console.log("deleted archived article")
+                res.status(201).json(deletedArticle)
+            } else {
+                res.status(401).json({
+                    error: "Invalid User Role"
+                })
+            }
+        },
+
+        
+
         getGeneralArticles: async (req, res) => {
             const userId = req.body.userId
+            const isUserOwner = req.body.isUserOwner
             const filters = req.body.filters
             const articlesPerPage = req.body.generalArticlesPerPage
             const currentArticlesPage = req.body.currentGeneralArticlesPage
-            const requestedGeneralArticlesData = await articleService.getUserArticles({ userId, filters, articlesPerPage, currentArticlesPage })
+            const requestedGeneralArticlesData = await articleService.getGeneralArticles({ userId, isUserOwner, filters, articlesPerPage, currentArticlesPage })
             res.status(201).json(requestedGeneralArticlesData)
         },
 
@@ -216,7 +291,7 @@ export const articleController = ({ articleService }) => {
                 res.status(201).json(requestedPendingArticlesData)
             } else {
                 res.status(401).json({
-                    error: "Invalid User Id"
+                    error: "Invalid User Role"
                 })
             }
         },
@@ -224,33 +299,52 @@ export const articleController = ({ articleService }) => {
         getHomepageArticlePreviews: async (req, res) => {
             const { previewArticlesPerPage, currentHomePage, filter } = req.body
             const { previewArticles: requestedHomepageArticleData, totalPreviewArticles } = await articleService.getPublishedArticles({ previewArticlesPerPage, currentHomePage, filter })
-            const requestedHomepageArticlePreviewsData = requestedHomepageArticleData.map((article) => ({
-                id: article.id,
-                img: article.imgs[0],
-                category: article.category,
-                title: article.title,
-                author: article.author,
-                date: article.date,
-                preview: article.preview,
-            }))
-            res.status(201).json({ previewArticles: requestedHomepageArticlePreviewsData, totalPreviewArticles })
+            
+            if (requestedHomepageArticleData && totalPreviewArticles) {
+                const requestedHomepageArticlePreviewsData = requestedHomepageArticleData.map((article) => ({
+                    id: article.id,
+                    img: article.imgs[0],
+                    category: article.category,
+                    title: article.title,
+                    author: article.author,
+                    date: article.date,
+                    preview: article.preview,
+                }))
+                res.status(201).json({ previewArticles: requestedHomepageArticlePreviewsData, totalPreviewArticles })
+            } else {
+                res.status(401).json({
+                    error: "Error Retrieving Homepage Article Previews"
+                })
+            }
         },
 
         loadArticleToView: async (req, res) => {
             const articleId = req.body.currViewingArticleId
-            console.log(articleId)
+            
             const currViewingArticle = await articleService.getArticle({ articleId })
-            console.log(currViewingArticle)
-            res.status(201).json({
-                id: currViewingArticle._id,
-                title: currViewingArticle.title,
-                author: currViewingArticle.authorName,
-                date: convertDate(currViewingArticle.dateSaved),
-                content: htmlWithImage(currViewingArticle.content, currViewingArticle.template, currViewingArticle.imgs),
-                category: currViewingArticle.category,
-                wordcount: currViewingArticle.wordcount,
-                status: currViewingArticle.status,
-            })
+
+            if (currViewingArticle) {
+                let articleDate
+                if (currViewingArticle === "published" || currViewingArticle === "archived" ) {
+                    articleDate = currViewingArticle.datePublished
+                } else {
+                    articleDate = currViewingArticle.dateSaved
+                }
+                res.status(201).json({
+                    id: currViewingArticle._id,
+                    title: currViewingArticle.title,
+                    author: currViewingArticle.authorName,
+                    date: convertDate(articleDate),
+                    content: htmlWithImage(currViewingArticle.content, currViewingArticle.template, currViewingArticle.imgs),
+                    category: currViewingArticle.category,
+                    wordcount: currViewingArticle.wordcount,
+                    status: currViewingArticle.status,
+                })
+            } else {
+                res.status(401).json({
+                    error: "Error Retrieving Article"
+                })
+            }
         },
     }
 }
