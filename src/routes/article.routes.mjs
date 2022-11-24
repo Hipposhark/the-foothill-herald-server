@@ -8,8 +8,13 @@ export const articleRoutes = ({articleController, authMiddleWare}) => {
     router.post("/deleteArticle", authMiddleWare, articleController.deleteArticle)
 
     router.post("/publishEditingArticle", authMiddleWare, articleController.approveArticle)
-    router.post("/publishPendingArticle", authMiddleWare, articleController.publishArticle)
     router.post("/rejectPendingArticle", authMiddleWare, articleController.rejectArticle)
+    router.post("/publishPendingArticle", authMiddleWare, articleController.publishArticle)
+
+    router.post("/archiveArticle", authMiddleWare, articleController.archiveArticle)
+    router.post("/unarchiveArticle", authMiddleWare, articleController.unarchiveArticle)
+    router.post("/deleteArchivedArticle", authMiddleWare, articleController.deleteArchivedArticle)
+
 
     router.post("/getGeneralArticles", authMiddleWare, articleController.getGeneralArticles)
     router.post("/getPendingArticles", authMiddleWare, articleController.getPendingArticles)

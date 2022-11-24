@@ -18,6 +18,7 @@ export const userService = ({ dbUser }) => {
                 lastName: body.account.lastName,
                 email: body.account.email,
                 role: body.account.role,
+                graduateYear: body.account.graduateYear,
                 bio: body.account.bio,
                 password: body.account.temporaryPassword,
                 temporaryPassword: body.account.temporaryPassword,
@@ -123,27 +124,31 @@ export const userService = ({ dbUser }) => {
 
         getUsers: async () => {
             try {
-                const users = await dbUser.find({}).select('+temporaryPassword');
+                const users = await dbUser.find().select('+temporaryPassword')
                 const userMap = {
                     owners: [],
                     editors: [],
                     writers: [],
                 }
-                users.map((curr) => {
-                    const role = curr.role;
-                    switch (role) {
-                        case 'owner':
-                            userMap.owners.push(curr)
-                            break;
-                        case 'editor':
-                            userMap.editors.push(curr)
-                            break;
-                        case 'writer':
-                            userMap.writers.push(curr)
-                            break;
-                    }
-                })
-
+                
+                if (users) {
+                    users.map((curr) => {
+                        if (curr) {
+                            const role = curr.role;
+                            switch (role) {
+                                case 'owner':
+                                    userMap.owners.push(curr)
+                                    break;
+                                case 'editor':
+                                    userMap.editors.push(curr)
+                                    break;
+                                case 'writer':
+                                    userMap.writers.push(curr)
+                                    break;
+                            }
+                        }
+                    })
+                }
                 return userMap
             } catch (e) {
                 throw e

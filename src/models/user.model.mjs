@@ -5,7 +5,6 @@ import bcrypt from 'bcryptjs';
 export const User = () => {
 
     const userSchema = new mongoose.Schema({
-
         firstName: {
             type: String,
             lowercase: true,
@@ -23,10 +22,13 @@ export const User = () => {
             lowercase: true,
             validate: [validator.isEmail, 'Please provide a valid email'],
         },
-        password: {
+        graduateYear: {
+            type: Number,
+            required: [true, 'Please provide your Graduation Year'],
+        },
+        bio: {
             type: String,
-            required: [true, 'Please provide a password'],
-            select: false,
+            required: false,
         },
         role: {
             type: String,
@@ -34,9 +36,10 @@ export const User = () => {
             required: [true, 'Please provide a Role'],
             default: 'writer',
         },
-        bio: {
+        password: {
             type: String,
-            required: false,
+            required: [true, 'Please provide a password'],
+            select: false,
         },
         temporaryPassword: {
             type: String,
