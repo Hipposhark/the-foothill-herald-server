@@ -1,7 +1,8 @@
 export const articleController = ({ articleService }) => {
 
-    const convertDate = (date) => {
-        const l = date.split(" ")
+    const convertDate = (date) => { // converts epoch date to string 'month. day, year'
+        const convertedDate = new Date(date).toString()
+        const l = convertedDate.split(" ")
         return `${l[1]}. ${parseInt(l[2])}, ${l[3]}`
     }
 
@@ -96,7 +97,6 @@ export const articleController = ({ articleService }) => {
             const articleToEdit = await articleService.getArticle({ articleId })
 
             if (userId === articleToEdit.authorId || userRole === "editor" || userRole === "owner") {
-                console.log(articleToEdit)
                 console.log("loaded article")
                 res.status(201).json(articleToEdit)
             } else {
@@ -119,6 +119,7 @@ export const articleController = ({ articleService }) => {
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
+                previewImg: article.previewImg,
                 imgs: article.imgs,
                 wordcount: article.wordcount,
                 preview: cleanedContent.slice(0, 110) + "...",
@@ -163,6 +164,7 @@ export const articleController = ({ articleService }) => {
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
+                previewImg: article.previewImg,
                 imgs: article.imgs,
                 wordcount: article.wordcount,
                 preview: cleanedContent.slice(0, 110) + "...",
@@ -192,6 +194,7 @@ export const articleController = ({ articleService }) => {
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
+                previewImg: article.previewImg,
                 imgs: article.imgs,
                 wordcount: article.wordcount,
                 preview: cleanedContent.slice(0, 110) + "...",
@@ -212,8 +215,10 @@ export const articleController = ({ articleService }) => {
             const userRole = req.body.userRole
             const articleId = req.body.currEditingArticleId
 
+            const datePublished = new Date(new Date().getTime() + 86400000).setHours(0, 0, 0, 0)
+
             if (userRole === "editor" || userRole === "owner") {
-                await articleService.updateArticle({articleId, articleChanges : {datePublished: (new Date()).toString()}})
+                await articleService.updateArticle({articleId, articleChanges : {datePublished}})
                 const publishedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "published" })
                 console.log("published article")
                 res.status(201).json(publishedArticle)
@@ -230,7 +235,6 @@ export const articleController = ({ articleService }) => {
 
             if (userRole === "owner") {
                 const archivedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "archived" })
-                // console.log("archived article", archivedArticle)
                 res.status(201).json(archivedArticle)
             } else {
                 res.status(401).json({
@@ -300,14 +304,14 @@ export const articleController = ({ articleService }) => {
             const { previewArticlesPerPage, currentHomePage, filter } = req.body
             const { previewArticles: requestedHomepageArticleData, totalPreviewArticles } = await articleService.getPublishedArticles({ previewArticlesPerPage, currentHomePage, filter })
             
-            if (requestedHomepageArticleData && totalPreviewArticles) {
+            if (requestedHomepageArticleData) {
                 const requestedHomepageArticlePreviewsData = requestedHomepageArticleData.map((article) => ({
                     id: article.id,
-                    img: article.imgs[0],
+                    img: article.previewImg,
                     category: article.category,
                     title: article.title,
                     author: article.author,
-                    date: article.date,
+                    date: article.datePublished,
                     preview: article.preview,
                 }))
                 res.status(201).json({ previewArticles: requestedHomepageArticlePreviewsData, totalPreviewArticles })
