@@ -13,6 +13,7 @@ export const Article = () => {
         title: {
             type: String,
             required: [true, 'Please Provide a Title'],
+            default: 'Untitled Article',
         },
         authorId: {
             type: String,
@@ -22,18 +23,18 @@ export const Article = () => {
             type: String,
             required: [true, "Please Provide the Author's Name"],
         },
-        dateCreated: {
-            type: String,
+        dateCreated: { 
+            type: Number,
             required: [true, 'Please Provide a Creation Date'],
             select: false,
         },
-        dateSaved: {
-            type: String,
+        dateSaved: { 
+            type: Number,
             required: [true, 'Please Provide a Saved Date'],
             select: false, 
         },
-        datePublished: {
-            type: String,
+        datePublished: { 
+            type: Number,
             required: [false],
             select: false,
         },
@@ -43,10 +44,16 @@ export const Article = () => {
             enum: ['none', 'top', 'middle', 'bottom', 'left', 'right', 'top-bottom'],
             default: 'none',
         },
-        imgs: {
+        previewImg: {
+            type: ImageSchema,
+            required: [false],
+            default: { imgId: "", name: "", url: "" },
+        },
+        imgs: { 
             type: [ImageSchema],
             required: [false],
             default: [],
+            select: false, 
         },
         content: {
             type: String,

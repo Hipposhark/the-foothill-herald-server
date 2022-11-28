@@ -1,7 +1,8 @@
 export const articleService = ({ dbArticle }) => {
 
-    const convertDate = (date) => {
-        const l = date.split(" ")
+    const convertDate = (date) => { // converts epoch date to string 'month. day, year'
+        const convertedDate = new Date(date).toString()
+        const l = convertedDate.split(" ")
         return `${l[1]}. ${parseInt(l[2])}, ${l[3]}`
     }
 
@@ -17,10 +18,11 @@ export const articleService = ({ dbArticle }) => {
                     title: "Untitled Article",
                     authorId: user._id,
                     authorName: name,
-                    dateCreated: (new Date()).toString(),
-                    dateSaved: (new Date()).toString(),
-                    datePublished: "",
+                    dateCreated: (new Date()).getTime(),
+                    dateSaved: (new Date()).getTime(),
+                    datePublished: null,
                     template: "none",
+                    previewImg: null,
                     imgs: [],
                     content: "<p></p>",
                     preview: "no preview",
@@ -41,7 +43,7 @@ export const articleService = ({ dbArticle }) => {
                     { _id: articleId },
                     articleChanges,
                     { new: true, runValidators: true, }
-                ).select('+content');
+                ).select('+content +imgs');
                 return updatedArticle
             } catch (e) {
                 throw e
@@ -74,7 +76,7 @@ export const articleService = ({ dbArticle }) => {
         getArticle: async (body) => {
             const { articleId } = body
             try {
-                const article = await dbArticle.findById({ _id: articleId }).select('+content +dateSaved +datePublished')
+                const article = await dbArticle.findById({ _id: articleId }).select('+content +imgs +dateSaved +datePublished')
                 return article
             } catch (e) {
                 throw e
@@ -92,20 +94,19 @@ export const articleService = ({ dbArticle }) => {
 
                 if (isUserOwner) {
                     if (updatedOwnershipFilters.includes("all-articles") && updatedOwnershipFilters.includes("my-articles")) {
-                        allUserArticles = await dbArticle.find().select("+dateSaved")
+                        allUserArticles = await dbArticle.find().select('+dateSaved +imgs').sort({dateSaved: -1})
                     } else if (updatedOwnershipFilters.includes("my-articles")) {
                         allUserArticles = await dbArticle.find({
                             'authorId': {
                                 $eq: userId,
                             }
-                        }).select("+dateSaved").sort('-dateCreated')
+                        }).select('+dateSaved +imgs').sort({dateSaved: -1})
                     } else if (updatedOwnershipFilters.includes("all-articles")) {
                         allUserArticles = await dbArticle.find({
                             'authorId': {
                                 $ne: userId,
                             }
-                        }).select("+dateSaved").sort('-date')
-                        console.log("all")
+                        }).select('+dateSaved +imgs').sort({dateSaved: -1})
                     } else{
                         allUserArticles = []
                     }
@@ -114,18 +115,18 @@ export const articleService = ({ dbArticle }) => {
                         'authorId': {
                             $eq: userId,
                         }
-                    }).select("+dateSaved").sort('-date')
+                    }).select('+dateSaved +imgs').sort({dateSaved: -1})
                 }
 
                 const filteredUserArticles = allUserArticles.filter((article) => {
-                    if (dateFilters.start === "" && dateFilters.end !== "") {
-                        const validDate = Date.parse(dateFilters.end) - Date.parse(article.date) > 0
+                    if (dateFilters.start < 0 && dateFilters.end > 0) { // default value is -1
+                        const validDate = dateFilters.end - article.dateSaved > 0
                         return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
-                    } else if (dateFilters.start !== "" && dateFilters.end === "") {
-                        const validDate = Date.parse(dateFilters.start) - Date.parse(article.date) < 0
+                    } else if (dateFilters.start > 0 && dateFilters.end > 0) {
+                        const validDate = dateFilters.start - article.dateSaved < 0
                         return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
-                    } else if (dateFilters.start !== "" && dateFilters.end !== "") {
-                        const validDate = Date.parse(dateFilters.end) - Date.parse(article.date) > 0 && Date.parse(dateFilters.start) - Date.parse(article.date) < 0
+                    } else if (dateFilters.start > 0 && dateFilters.end > 0) {
+                        const validDate = dateFilters.end - article.dateSaved > 0 && dateFilters.start - article.dateSaved < 0
                         return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category) && validDate
                     } else {
                         return updatedStatusFilters.includes(article.status) && categoryFilters.includes(article.category)
@@ -139,13 +140,14 @@ export const articleService = ({ dbArticle }) => {
                 const generalArticles = requestedGeneralArticles.map((article) => ({
                     id: article.id,
                     title: article.title,
+                    previewImg: article.previewImg,
                     authorId: article.authorId,
                     authorName: article.authorName,
-                    date: convertDate(article.dateSaved),
-                    imgs: article.imgs,
+                    dateSaved: convertDate(article.dateSaved),
                     category: article.category,
                     wordcount: article.wordcount,
                     status: article.status,
+                    imgs: article.imgs,
                 }))
 
                 return {
@@ -163,7 +165,7 @@ export const articleService = ({ dbArticle }) => {
                     'status': {
                         $eq: "pending",
                     }
-                }).select("+dateSaved")
+                }).select("+dateSaved").sort({dateSaved: -1})
 
                 const requestedPendingArticles = allPendingArticles.filter((article, index) => {
                     return (index >= (currentArticlesPage - 1) * articlesPerPage && (index < (currentArticlesPage - 1) * articlesPerPage + articlesPerPage)) && !(userRole === "editor" && userId === article.authorId)
@@ -174,8 +176,8 @@ export const articleService = ({ dbArticle }) => {
                     title: article.title,
                     authorId: article.authorId,
                     authorName: article.authorName,
-                    date: convertDate(article.dateSaved),
-                    img: article.imgs[0],
+                    dateSaved: convertDate(article.dateSaved),
+                    previewImg: article.previewImg,
                     category: article.category,
                     wordcount: article.wordcount,
                 }))
@@ -197,24 +199,28 @@ export const articleService = ({ dbArticle }) => {
                     'status': {
                         $eq: "published",
                     }
-                }).select('+datePublished')
+                }).select('+datePublished').sort({datePublished: -1})
 
                 const categoryFilteredPreviewArticles = allPublishedArticles.filter((article) => {
                     return filter === "" ? true : filter === article.category
                 })
+                
+                const dateFilteredPreviewArticles = categoryFilteredPreviewArticles.filter((article) => {
+                    return new Date().getTime() >= article.datePublished 
+                })
 
-                const pageFilteredPreviewArticles = categoryFilteredPreviewArticles.filter((article, index) => {
+                const pageFilteredPreviewArticles = dateFilteredPreviewArticles.filter((article, index) => {
                     return index >= (currentHomePage - 1) * previewArticlesPerPage && (index < (currentHomePage - 1) * previewArticlesPerPage + previewArticlesPerPage)
                 })
 
                 const requestedPreviewArticles = pageFilteredPreviewArticles.map((article) => {
                     return {
                         id: article.id,
-                        imgs: article.imgs,
+                        previewImg: article.previewImg,
                         category: article.category,
                         title: article.title,
                         author: article.authorName,
-                        date: convertDate(article.datePublished),
+                        datePublished: convertDate(article.datePublished),
                         preview: article.preview,
                     }
                 })
