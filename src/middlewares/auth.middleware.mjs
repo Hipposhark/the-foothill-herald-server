@@ -16,15 +16,14 @@ export const makeAuthMiddleWare = ({ dbUser }) => {
         }
 
         try {
-            const decoded = await promisify(jwt.verify)(token, "supersecretstring"); //extract data + verify ownership
-            const user = await dbUser.findById(decoded.id);
+            const decoded = await promisify(jwt.verify)(token, process.env.JWT_SIGNATURE)
+            const user = await dbUser.findById(decoded.id)
             if (!user) next({message: "USER NOT FOUND"})
         } catch (e) {   
             console.log("ERROR", e)
             if (e instanceof SyntaxError) next({ message: "INVALID TOKEN" })
             throw makeError(404, "generic error", "generic_fail")
         }
-        //Grant access to proteced route
         next();
     }
 }

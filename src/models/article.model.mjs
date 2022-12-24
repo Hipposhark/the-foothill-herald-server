@@ -1,13 +1,17 @@
 import mongoose from "mongoose"
 
 export const Article = () => {
-    const ImageSchema = new mongoose.Schema({ imgId: String, name: String, url: String });
+    const ImageSchema = new mongoose.Schema({ 
+        imgId: String, 
+        name: String, 
+        url: String }
+    )
 
     const articleSchema = new mongoose.Schema({
         category: {
             type: String,
             required: [true, 'Please Provide a Category'],
-            enum: ['news', 'sports', 'entertainment', 'clubs', 'advertisement'],
+            enum: ['news', 'opinion', 'sports', 'entertainment', 'clubs', 'advertisement'],
             default: 'news',
         },
         title: {
@@ -78,7 +82,7 @@ export const Article = () => {
             type: Number,
             required: [true, 'Please Provide an Article Wordcount'],
         },
-    });
+    })
     
-    return mongoose.model('Article', articleSchema); 
+    return mongoose.model('Article', articleSchema)
 }

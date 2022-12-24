@@ -59,27 +59,27 @@ export const articleController = ({ articleService }) => {
         const splittedHtml = splitHtmlString(str)
         switch (template) {
             case "top":
-                return `<img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>
+                return `<img src=${imgs[0].url} style = 'width:500px; display: flex; padding: 20px;'/>
                         <div>${splittedHtml.join("")}</div>`
             case "bottom":
                 return `<div>${splittedHtml.join("")}</div>
-                        <img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>`
+                        <img src=${imgs[0].url} style = 'width:500px; display: flex; padding: 20px;'/>`
             case "left":
-                return `<div><img src=${imgs[1].url} style = 'float:left; width:400px; padding-right: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
+                return `<div><img src=${imgs[0].url} style = 'float:left; width:400px; padding-right: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
             case "right":
-                return `<div><img src=${imgs[1].url} style = 'float:right; width:400px; padding-left: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
+                return `<div><img src=${imgs[0].url} style = 'float:right; width:400px; padding-left: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
             case "middle":
                 return `<div>
                             ${splittedHtml.slice(0, Math.floor(splittedHtml.length / 2)).join("")} 
                         </div>
-                        <img src=${imgs[1].url} style = 'width:500px; display: flex; align-items: center; padding: 20px;'/>
+                        <img src=${imgs[0].url} style = 'width:500px; display: flex; align-items: center; padding: 20px;'/>
                         <div>
                             ${splittedHtml.slice(Math.floor(splittedHtml.length / 2), splittedHtml.length).join("")} 
                         </div>`
             case "top-bottom":
-                return `<img src=${imgs[1].url} style = 'width:500px; display: flex;'/>
+                return `<img src=${imgs[0].url} style = 'width:500px; display: flex;'/>
                         <div>${splittedHtml.join("")}</div>
-                        <img src=${imgs[2].url} style = 'width:500px; display: flex;'/>`
+                        <img src=${imgs[1].url} style = 'width:500px; display: flex;'/>`
             default:
                 return str
         }

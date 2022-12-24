@@ -9,10 +9,11 @@ export const userController = ({ userService }) => {
         login: async (req, res) => {
             if (!req.body.email || !req.body.password) {
                 res.status(401).json({
-                    error: "Missing Username or Password"
+                    detail: "Missing Username or Password"
                 })
             } else {
                 const newUser = await userService.login(req.body)
+                console.log(newUser)
                 res.status(200).json(newUser)
             }
         },
@@ -20,11 +21,11 @@ export const userController = ({ userService }) => {
         authenticateUser: async (req, res) => {
             if (!req.body.newPassword || !req.body.confirmNewPassword) {
                 res.status(401).json({
-                    error: "Missing New Password or Confirm New Password"
+                    detail: "Missing New Password or Confirm New Password"
                 })
             } else if (req.body.newPassword !== req.body.confirmNewPassword) {
                 res.status(401).json({
-                    error: "Incorrect Confirm New Password"
+                    detail: "Incorrect New Password Confirmation"
                 })
             } else {
                 const newUser = await userService.authenticateUser({
@@ -38,11 +39,11 @@ export const userController = ({ userService }) => {
         changePassword: async (req, res) => {
             if (!req.body.oldPassword || !req.body.newPassword || !req.body.confirmNewPassword) {
                 res.status(401).json({
-                    error: "Missing Old Password, New Password, or Confirm New Password"
+                    detail: "Missing Old Password, New Password, or Confirm New Password"
                 })
             } else if (req.body.newPassword !== req.body.confirmNewPassword) {
                 res.status(401).json({
-                    error: "Incorrect Confirm New Password"
+                    detail: "Incorrect New Password Confirmation"
                 })
             } else {
                 const newUser = await userService.changePassword({
