@@ -7,7 +7,7 @@ export const articleController = ({ articleService }) => {
     }
 
     const capitalize = (phrase) => {
-        const exceptions = ['and', 'to', 'for', 'in', 'the', 'at', 'on', 'of', 'from']
+        const exceptions = ['and', 'a', 'an', 'to', 'for', 'in', 'the', 'at', 'on', 'of', 'from']
         return phrase.split(" ").map((word, i) => {
             return i == 0 ? word.slice(0, 1).toUpperCase() + word.slice(1) :
                 exceptions.includes(word.toLowerCase()) ? word.toLowerCase() :
@@ -373,7 +373,7 @@ export const articleController = ({ articleService }) => {
                 }
                 res.status(201).json({
                     id: currViewingArticle._id,
-                    title: currViewingArticle.title,
+                    title: capitalize(currViewingArticle.title),
                     author: currViewingArticle.authorName,
                     date: convertDate(articleDate),
                     content: htmlWithImage(currViewingArticle.content, /*currViewingArticle.template,*/ currViewingArticle.imgs),
