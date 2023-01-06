@@ -11,8 +11,6 @@ import { Article } from "./models/article.model.mjs";
 import { articleService } from "./services/article.service.mjs";
 import { articleRoutes } from "./routes/article.routes.mjs";
 import { articleController } from "./controllers/article.controller.mjs";
-import { makeServingMiddleware } from "./middlewares/serving.middleware.mjs";
-
 
 export const diContainer = awilix.createContainer({
     injectionMode: awilix.InjectionMode.PROXY
@@ -36,7 +34,6 @@ diContainer.register({
     articleController: awilix.asFunction(articleController),
 
     //Middlewares
-    servingMiddleware: awilix.asFunction(makeServingMiddleware),
     errorMiddleware: awilix.asFunction(makeErrorMiddleware),
     authMiddleWare: awilix.asFunction(makeAuthMiddleWare),
 
