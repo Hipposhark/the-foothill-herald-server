@@ -1,6 +1,6 @@
-import mongoose from 'mongoose';
-import validator from 'validator';
-import bcrypt from 'bcryptjs';
+import mongoose from 'mongoose'
+import validator from 'validator'
+import bcrypt from 'bcryptjs'
 
 export const User = () => {
 
@@ -53,30 +53,30 @@ export const User = () => {
             type: Boolean,
             required: [true, 'Please provide an Authenticated status'],
         }
-    });
+    })
 
     userSchema.pre('save', async function (next) {
-        if (!this.isModified('password')) return next();
-        this.password = await bcrypt.hash(this.password, 12);
-        next();
-    });
+        if (!this.isModified('password')) return next()
+        this.password = await bcrypt.hash(this.password, 12)
+        next()
+    })
 
     userSchema.pre('findOneAndUpdate', async function (next) {
         if (this._update.password) {
-            const hashed = await bcrypt.hash(this._update.password, 12);
-            this._update.password = hashed;
+            const hashed = await bcrypt.hash(this._update.password, 12)
+            this._update.password = hashed
         }
-        next();
-    });
+        next()
+    })
 
 
     userSchema.methods.correctPassword = async function (
         candidatePassword,
         userPassword
     ) {
-        return await bcrypt.compare(candidatePassword, userPassword);
-    };
+        return await bcrypt.compare(candidatePassword, userPassword)
+    }
 
-    return mongoose.model('User', userSchema);
+    return mongoose.model('User', userSchema)
 
 }

@@ -1,13 +1,48 @@
 import mongoose from "mongoose"
 
 export const Article = () => {
-    const ImageSchema = new mongoose.Schema({ imgId: String, name: String, url: String });
+    const ArticlPreviewImageSchema = new mongoose.Schema({ 
+        imgId: {
+            type: String,
+            required: [true, 'Please Provide an Image Id'],
+        }, 
+        name: {
+            type: String,
+            required: [true, 'Please Provide an Image Name'],
+        }, 
+        url: {
+            type: String,
+            required: [true, 'Please Provide an Image Url'],
+        }, 
+    })
+    const ArticleImageSchema = new mongoose.Schema({ 
+        imgId: {
+            type: String,
+            required: [true, 'Please Provide an Image Id'],
+        }, 
+        name: {
+            type: String,
+            required: [true, 'Please Provide an Image Name'],
+        }, 
+        url: {
+            type: String,
+            required: [true, 'Please Provide an Image Url'],
+        }, 
+        num: {
+            type: Number,
+        }, 
+        position: {
+            type: String,
+            enum: ['left', 'right', 'middle', 'none'],
+            default: 'right'
+        }
+    })
 
     const articleSchema = new mongoose.Schema({
         category: {
             type: String,
             required: [true, 'Please Provide a Category'],
-            enum: ['news', 'sports', 'entertainment', 'clubs', 'advertisement'],
+            enum: ['news', 'opinion', 'sports', 'entertainment', 'clubs', 'advertisement'],
             default: 'news',
         },
         title: {
@@ -38,19 +73,19 @@ export const Article = () => {
             required: [false],
             select: false,
         },
-        template: {
-            type: String,
-            required: [true, 'Please Provide a Template'],
-            enum: ['none', 'top', 'middle', 'bottom', 'left', 'right', 'top-bottom'],
-            default: 'none',
-        },
+        // template: {
+        //     type: String,
+        //     required: [true, 'Please Provide a Template'],
+        //     enum: ['none', 'top', 'middle', 'bottom', 'left', 'right', 'top-bottom'],
+        //     default: 'none',
+        // },
         previewImg: {
-            type: ImageSchema,
+            type: ArticlPreviewImageSchema,
             required: [false],
             default: { imgId: "", name: "", url: "" },
         },
         imgs: { 
-            type: [ImageSchema],
+            type: [ArticleImageSchema],
             required: [false],
             default: [],
             select: false, 
@@ -78,7 +113,7 @@ export const Article = () => {
             type: Number,
             required: [true, 'Please Provide an Article Wordcount'],
         },
-    });
+    })
     
-    return mongoose.model('Article', articleSchema); 
+    return mongoose.model('Article', articleSchema)
 }

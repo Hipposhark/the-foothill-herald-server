@@ -51,38 +51,75 @@ export const articleController = ({ articleService }) => {
         return arr
     }
 
-    const htmlWithImage = (str, template, imgs) => { // formats content with imgs based on template
-        if (template === "none") {
-            return `<div>${str}</div>`
+    const getIndicesOf = (searchStr, str) => {
+        let searchStrLen = searchStr.length
+        if (searchStrLen == 0) {
+            return []
         }
+        let startIndex = 0, index, indices = []
+        while ((index = str.indexOf(searchStr, startIndex)) > -1) {
+            indices.push(index)
+            startIndex = index + searchStrLen
+        }
+        return indices
+    }
 
-        const splittedHtml = splitHtmlString(str)
-        switch (template) {
-            case "top":
-                return `<img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>
-                        <div>${splittedHtml.join("")}</div>`
-            case "bottom":
-                return `<div>${splittedHtml.join("")}</div>
-                        <img src=${imgs[1].url} style = 'width:500px; display: flex; padding: 20px;'/>`
+    const getHtmlImage = (src, position) => {
+        switch (position) {
             case "left":
-                return `<div><img src=${imgs[1].url} style = 'float:left; width:400px; padding-right: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
+                return `<img src=${src} style="float:left; width:400px; padding-right: 20px; padding-bottom: 20px;"/>`
             case "right":
-                return `<div><img src=${imgs[1].url} style = 'float:right; width:400px; padding-left: 20px; padding-bottom: 20px;'/>${splittedHtml.join("")}</div>`
+                return `<img src=${src} style="float:right; width:400px; padding-left: 20px; padding-bottom: 20px;"/>`
             case "middle":
-                return `<div>
-                            ${splittedHtml.slice(0, Math.floor(splittedHtml.length / 2)).join("")} 
+                return `
+                        <div style="max-width:500px; display: flex; justify-content: center; margin-left: auto; margin-right: auto; padding: 20px;">
+                            <img src=${src} style="max-width:500px;"/>
                         </div>
-                        <img src=${imgs[1].url} style = 'width:500px; display: flex; align-items: center; padding: 20px;'/>
-                        <div>
-                            ${splittedHtml.slice(Math.floor(splittedHtml.length / 2), splittedHtml.length).join("")} 
-                        </div>`
-            case "top-bottom":
-                return `<img src=${imgs[1].url} style = 'width:500px; display: flex;'/>
-                        <div>${splittedHtml.join("")}</div>
-                        <img src=${imgs[2].url} style = 'width:500px; display: flex;'/>`
+                    `
             default:
-                return str
+                return `<img src=${src} style="float:right; width:400px; padding-left: 20px; padding-bottom: 20px;"/>`
         }
+    }
+
+    const htmlWithImage = (str, imgs) => { // formats content with imgs based on template
+        const splittedHtml = splitHtmlString(str)
+
+        const splittedHtmlWithImages = splittedHtml.map(paragraph => {
+
+            if (paragraph.includes('<span class="editor-image">')) {
+                let newParagraph = ""
+                const startSpanTagsIndicies = getIndicesOf('<span class="editor-image">', paragraph)
+                const unfilteredEndSpanTagsIndicies = getIndicesOf("</span>", paragraph)
+                let startIndexIndex = 0
+                const endSpanTagsIndicies = unfilteredEndSpanTagsIndicies.filter((endIndex) => { // removes inline style spans
+                    const startIndex = startSpanTagsIndicies[startIndexIndex]
+                    if (endIndex-startIndex === 34) { // margin of 9 images
+                        startIndexIndex++
+                        return true
+                    } else{
+                        return false
+                    }
+                })
+
+                startSpanTagsIndicies.forEach((startIndex, i) => {
+                    const imgNum = parseInt(paragraph.slice(startIndex, endSpanTagsIndicies[i]).split(' ')[2])
+                    const image = imgs.filter(image => image.num === imgNum)[0]
+                    const htmlImageTag = getHtmlImage(image.url, image.position)
+                    if (i == 0){
+                        newParagraph = newParagraph + paragraph.slice(0, startIndex) + htmlImageTag
+                    } else {
+                        newParagraph = newParagraph + paragraph.slice(endSpanTagsIndicies[i-1]+7, startIndex) + htmlImageTag
+                    }
+                })
+                newParagraph = "<div>" + newParagraph + paragraph.slice(endSpanTagsIndicies[endSpanTagsIndicies.length-1]+7) + "</div>"
+                return newParagraph
+            }
+
+            return paragraph
+        })
+        
+        const htmlWithImages = splittedHtmlWithImages.join('')
+        return htmlWithImages
     }
 
     return {
@@ -115,7 +152,7 @@ export const articleController = ({ articleService }) => {
                 category: article.category,
                 title: article.title,
                 dateSaved: article.date,
-                template: article.template,
+                // template: article.template,
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
@@ -160,7 +197,7 @@ export const articleController = ({ articleService }) => {
                 category: article.category,
                 title: article.title,
                 dateSaved: article.date,
-                template: article.template,
+                // template: article.template,
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
@@ -190,7 +227,7 @@ export const articleController = ({ articleService }) => {
                 category: article.category,
                 title: article.title,
                 dateSaved: article.date,
-                template: article.template,
+                // template: article.template,
                 content: article.content,
                 editorComment: article.editorComment,
                 status: article.status,
@@ -218,7 +255,7 @@ export const articleController = ({ articleService }) => {
             const datePublished = new Date(new Date().getTime() + 86400000).setHours(0, 0, 0, 0)
 
             if (userRole === "editor" || userRole === "owner") {
-                await articleService.updateArticle({articleId, articleChanges : {datePublished}})
+                await articleService.updateArticle({ articleId, articleChanges: { datePublished } })
                 const publishedArticle = await articleService.updateArticleStatus({ articleId, newStatus: "published" })
                 console.log("published article")
                 res.status(201).json(publishedArticle)
@@ -273,7 +310,7 @@ export const articleController = ({ articleService }) => {
             }
         },
 
-        
+
 
         getGeneralArticles: async (req, res) => {
             const userId = req.body.userId
@@ -303,7 +340,7 @@ export const articleController = ({ articleService }) => {
         getHomepageArticlePreviews: async (req, res) => {
             const { previewArticlesPerPage, currentHomePage, filter } = req.body
             const { previewArticles: requestedHomepageArticleData, totalPreviewArticles } = await articleService.getPublishedArticles({ previewArticlesPerPage, currentHomePage, filter })
-            
+
             if (requestedHomepageArticleData) {
                 const requestedHomepageArticlePreviewsData = requestedHomepageArticleData.map((article) => ({
                     id: article.id,
@@ -324,12 +361,12 @@ export const articleController = ({ articleService }) => {
 
         loadArticleToView: async (req, res) => {
             const articleId = req.body.currViewingArticleId
-            
+
             const currViewingArticle = await articleService.getArticle({ articleId })
 
             if (currViewingArticle) {
                 let articleDate
-                if (currViewingArticle === "published" || currViewingArticle === "archived" ) {
+                if (currViewingArticle === "published" || currViewingArticle === "archived") {
                     articleDate = currViewingArticle.datePublished
                 } else {
                     articleDate = currViewingArticle.dateSaved
@@ -339,7 +376,7 @@ export const articleController = ({ articleService }) => {
                     title: currViewingArticle.title,
                     author: currViewingArticle.authorName,
                     date: convertDate(articleDate),
-                    content: htmlWithImage(currViewingArticle.content, currViewingArticle.template, currViewingArticle.imgs),
+                    content: htmlWithImage(currViewingArticle.content, /*currViewingArticle.template,*/ currViewingArticle.imgs),
                     category: currViewingArticle.category,
                     wordcount: currViewingArticle.wordcount,
                     status: currViewingArticle.status,

@@ -1,6 +1,5 @@
 export const makeErrorMiddleware = ({}) => {
     return (error, req, res, next) => {
-        console.log(error.message)
         const errorDetail = {
             type: error.type ?? "about:blank",
             detail: error.message,
