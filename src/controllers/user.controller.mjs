@@ -13,7 +13,6 @@ export const userController = ({ userService }) => {
                 })
             } else {
                 const newUser = await userService.login(req.body)
-                console.log(newUser)
                 res.status(200).json(newUser)
             }
         },

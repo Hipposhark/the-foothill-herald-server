@@ -5,11 +5,24 @@ export const userService = ({ dbUser }) => {
 
     const signToken = (id) => {
         return jwt.sign({ id }, process.env.JWT_SIGNATURE, {
-            expiresIn: "1h", //milliseconds
+            expiresIn: "1d", //milliseconds
         })
     }
 
     return {
+        refreshToken: async (token) => {
+            let decoded, user, newToken
+            try {
+                decoded = await promisify(jwt.verify)(token, process.env.JWT_SIGNATURE)
+                user = await dbUser.findById(decoded.id)
+                if (!user) next({ message: "User Not Found" })
+                newToken = signToken(user._id)
+                return { newToken }
+            } catch (e) {
+                if (e instanceof SyntaxError) next({ message: "Invalid Token" })
+                throw makeError(404, "invalid token", "generic_fail")
+            }
+        },
         createUser: async (body) => {
             const account = {
                 firstName: body.account.firstName,
@@ -31,9 +44,9 @@ export const userService = ({ dbUser }) => {
                 return newUser
             } catch (e) {
                 if (e.code === 11000) {
-                    throw {message: "Duplicate Email"}
-                } else{
-                    throw {message: e}
+                    throw { message: "Duplicate Email" }
+                } else {
+                    throw { message: e }
                 }
             }
         },
@@ -62,7 +75,6 @@ export const userService = ({ dbUser }) => {
 
             return { token, ...newUser, _id: newUser._id.toString() }
         },
-
         authenticateUser: async (body) => {
             const { _id, newPassword, } = body
 
@@ -79,9 +91,7 @@ export const userService = ({ dbUser }) => {
                 throw e
             }
 
-
         },
-
         changePassword: async (body) => {
             const { _id, oldPassword, newPassword } = body
 
@@ -100,7 +110,6 @@ export const userService = ({ dbUser }) => {
                 throw e
             }
         },
-
         updateProfile: async (body) => {
             const { _id, changes } = body
 
@@ -119,7 +128,6 @@ export const userService = ({ dbUser }) => {
 
 
         },
-
         deleteUser: async (body) => {
             const { _id } = body
 
@@ -129,7 +137,6 @@ export const userService = ({ dbUser }) => {
                 throw e
             }
         },
-
         getUsers: async () => {
             try {
                 const users = await dbUser.find().select('+temporaryPassword')
@@ -138,7 +145,7 @@ export const userService = ({ dbUser }) => {
                     editors: [],
                     writers: [],
                 }
-                
+
                 if (users) {
                     users.map((curr) => {
                         if (curr) {
@@ -162,19 +169,5 @@ export const userService = ({ dbUser }) => {
                 throw e
             }
         },
-
-        refreshToken: async (token) => {
-            let decoded, user, newToken
-            try {
-                decoded = await promisify(jwt.verify)(token, process.env.JWT_SIGNATURE)
-                user = await dbUser.findById(decoded.id)
-                if (!user) next({ message: "User Not Found" })
-                newToken = signToken(user._id)
-                return { newToken }
-            } catch (e) {
-                if (e instanceof SyntaxError) next({ message: "Invalid Token" })
-                throw makeError(404, "generic error", "generic_fail")
-            }
-        }
     }
 }

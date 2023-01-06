@@ -1,11 +1,11 @@
 import jwt from 'jsonwebtoken'
 import { promisify } from 'util'
-import { makeError } from '../utils/utils.mjs';
+import { makeError } from '../utils/utils.mjs'
 
 export const makeAuthMiddleWare = ({ dbUser }) => {
 
     return async (req, res, next) => {
-        let token;
+        let token
 
         if (req.headers.authorization && req.headers.authorization.startsWith('Bearer')) {
             token = req.headers.authorization.split(' ')[1];
@@ -20,10 +20,9 @@ export const makeAuthMiddleWare = ({ dbUser }) => {
             const user = await dbUser.findById(decoded.id)
             if (!user) next({message: "USER NOT FOUND"})
         } catch (e) {   
-            console.log("ERROR", e)
             if (e instanceof SyntaxError) next({ message: "INVALID TOKEN" })
             throw makeError(404, "generic error", "generic_fail")
         }
-        next();
+        next()
     }
 }
