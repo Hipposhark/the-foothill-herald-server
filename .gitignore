@@ -13,4 +13,4 @@ node_modules
 .nyc_output
 coverage
 
-.env.local
+.env.development.local
