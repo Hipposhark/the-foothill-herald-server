@@ -18,14 +18,20 @@ export const articleController = ({ articleService }) => {
     const cleanHtmlString = (str) => { // removes all tags from string
         let i = 0
         let inTag = false
+        let inSpan = false
         let newStr = ""
-        while (i < str.length - 1) {
-            if (str.slice(i, i + 1) === "<") {
+        while (i < str.length-1) {
+            if (str.slice(i, i+1) === "<") {
                 inTag = true
-            }
-            if (str.slice(i, i + 1) === ">") {
+                if (str.slice(i+1, i+2) === "s"){
+                    inSpan = true
+                }
+            } else if (str.slice(i, i+1) === ">") {
                 inTag = false
-            } else if (!inTag) {
+                if (str.slice(i-1, i) === "n") {
+                    inSpan = false
+                }
+            } else if (!inTag && !inSpan) {
                 newStr += str[i]
             }
             i++
