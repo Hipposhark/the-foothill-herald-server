@@ -42,7 +42,7 @@ export const Article = () => {
         category: {
             type: String,
             required: [true, 'Please Provide a Category'],
-            enum: ['news', 'opinion', 'sports', 'entertainment', 'clubs', 'advertisement'],
+            enum: ['news', 'opinion', 'sports', 'entertainment', 'clubs', 'advertisment'],
             default: 'news',
         },
         title: {
