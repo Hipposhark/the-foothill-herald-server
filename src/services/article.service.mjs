@@ -43,7 +43,7 @@ export const articleService = ({ dbArticle }) => {
                     { _id: articleId },
                     articleChanges,
                     { new: true, runValidators: true, }
-                ).select('+content +imgs');
+                ).select('+content +imgs +authorName');
                 return updatedArticle
             } catch (e) {
                 throw e
@@ -76,7 +76,7 @@ export const articleService = ({ dbArticle }) => {
         getArticle: async (body) => {
             const { articleId } = body
             try {
-                const article = await dbArticle.findById({ _id: articleId }).select('+content +imgs +dateSaved +datePublished')
+                const article = await dbArticle.findById({ _id: articleId }).select('+content +imgs +dateSaved +datePublished +authorId +authorName')
                 return article
             } catch (e) {
                 throw e

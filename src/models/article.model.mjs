@@ -54,7 +54,7 @@ export const Article = () => {
             type: String,
             required: [true, "Please Provide the Author's Id"],
         },
-        authorName: {
+        authorName: { // Author name doesn't necessarily match up with author id
             type: String,
             required: [true, "Please Provide the Author's Name"],
         },
@@ -73,12 +73,6 @@ export const Article = () => {
             required: [false],
             select: false,
         },
-        // template: {
-        //     type: String,
-        //     required: [true, 'Please Provide a Template'],
-        //     enum: ['none', 'top', 'middle', 'bottom', 'left', 'right', 'top-bottom'],
-        //     default: 'none',
-        // },
         previewImg: {
             type: ArticlPreviewImageSchema,
             required: [false],
