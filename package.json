@@ -19,7 +19,7 @@
     "migrate:apply": "prisma db push"
   },
   "dependencies": {
-    "awilix": "^8.0.1",
+    "awilix": "^5.0.1",
     "axios": "^0.26.0",
     "bcryptjs": "^2.4.3",
     "child-process-promise": "^2.2.1",
